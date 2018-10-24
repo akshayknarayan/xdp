@@ -1,0 +1,8 @@
+[package]
+name = "xdp"
+version = "0.1.0"
+authors = ["Akshay Narayan <akshayn@mit.edu>"]
+
+[dependencies]
+libc = "0.2"
+failure = "0.1"

@@ -7,10 +7,15 @@ use libc::{c_int, c_void};
 mod if_xdp;
 use if_xdp::*;
 
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused)]
+mod libbpf;
+
 // values from https://github.com/torvalds/linux/blob/master/samples/bpf/xdpsock_user.c#L36
 pub static SOL_XDP: c_int = 283;
 pub static PF_XDP: c_int = 44;
-
 
 pub static NUM_FRAMES: usize = 131072;
 pub static FRAME_HEADROOM: usize = 0;
@@ -18,7 +23,7 @@ pub static FRAME_SHIFT: c_int = 11;
 pub static FRAME_SIZE: usize = 2048;
 pub static NUM_DESCS: c_int = 1024;
 pub static BATCH_SIZE: usize = 16;
- 
+
 pub static FQ_NUM_DESCS: usize = 1024;
 pub static CQ_NUM_DESCS: usize = 1024;
 
@@ -59,10 +64,10 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
 
     // register the umem memory with the socket
     let ok = libc::setsockopt(
-        sfd, 
-        SOL_XDP, 
-        XDP_UMEM_REG as c_int, 
-        &mr as *const _ as *const c_void, 
+        sfd,
+        SOL_XDP,
+        XDP_UMEM_REG as c_int,
+        &mr as *const _ as *const c_void,
         std::mem::size_of::<XdpUmemReg>() as libc::socklen_t,
     );
     if ok < 0 {
@@ -73,10 +78,10 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
     let cq_size = CQ_NUM_DESCS;
 
     let ok = libc::setsockopt(
-        sfd, 
-        SOL_XDP, 
-        XDP_UMEM_FILL_RING as c_int, 
-        &fq_size as *const _ as *const c_void, 
+        sfd,
+        SOL_XDP,
+        XDP_UMEM_FILL_RING as c_int,
+        &fq_size as *const _ as *const c_void,
         std::mem::size_of::<c_int>() as libc::socklen_t,
     );
     if ok < 0 {
@@ -84,10 +89,10 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
     }
 
     let ok = libc::setsockopt(
-        sfd, 
-        SOL_XDP, 
-        XDP_UMEM_COMPLETION_RING as c_int, 
-        &cq_size as *const _ as *const c_void, 
+        sfd,
+        SOL_XDP,
+        XDP_UMEM_COMPLETION_RING as c_int,
+        &cq_size as *const _ as *const c_void,
         std::mem::size_of::<c_int>() as libc::socklen_t,
     );
     if ok < 0 {
@@ -108,7 +113,7 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
     }
 
     let fq_map: *mut c_void = libc::mmap(
-        std::ptr::null_mut(), 
+        std::ptr::null_mut(),
         (off.fr.desc + FQ_NUM_DESCS as u64 * std::mem::size_of::<u64>() as u64) as usize,
         libc::PROT_READ | libc::PROT_WRITE,
         libc::MAP_SHARED | libc::MAP_POPULATE,
@@ -132,7 +137,7 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
     }
 
     Ok(XdpUmem {
-        fq: XdpUmemUqueue{
+        fq: XdpUmemUqueue {
             map: fq_map,
             mask: (FQ_NUM_DESCS - 1) as u32,
             size: FQ_NUM_DESCS as u32,
@@ -142,7 +147,7 @@ unsafe fn xdp_umem_configure(sfd: c_int) -> Result<XdpUmem, failure::Error> {
             cached_conns: FQ_NUM_DESCS as u32,
             cached_prod: Default::default(),
         },
-        cq: XdpUmemUqueue{
+        cq: XdpUmemUqueue {
             map: cq_map,
             mask: (CQ_NUM_DESCS - 1) as u32,
             size: CQ_NUM_DESCS as u32,

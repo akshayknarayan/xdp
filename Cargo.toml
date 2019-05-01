@@ -8,6 +8,7 @@ edition = "2018"
 libc = "0.2"
 failure = "0.1"
 nix = "0.13"
+structopt = "0.2"
 
 [build-dependencies]
 bindgen = "0.49.0"

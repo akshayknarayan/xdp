@@ -87,3 +87,13 @@ unsafe fn xdp_configure(interface_index: u32, queue_id: u32) -> Result<XdpSocket
 
     Ok(XdpSocket { rx, tx, sfd, umem })
 }
+
+impl Drop for XdpSocket {
+    fn drop(&mut self) {
+        // close socket
+        let ok = unsafe { libc::close(self.sfd) };
+        if ok < 0 {
+            println!("failed to close xdp sfd");
+        }
+    }
+}

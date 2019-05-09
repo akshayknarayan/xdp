@@ -23,6 +23,8 @@ mod if_link {
 use failure::bail;
 
 pub struct BpfHandles {
+    prog_fd: std::os::raw::c_int,
+    bpf_obj: *mut bpf_object,
     xsks_map: std::os::raw::c_int,
     qidconf_map: std::os::raw::c_int,
 }
@@ -50,6 +52,15 @@ impl BpfHandles {
             bail!("bpf_map_update_elem failed: {}", ok);
         }
         Ok(())
+    }
+}
+
+impl Drop for BpfHandles {
+    fn drop(&mut self) {
+        let ok = unsafe { bpf_object__unload(self.bpf_obj) };
+        if ok < 0 {
+            panic!("didn't find object?? {:?}", ok);
+        }
     }
 }
 
@@ -134,6 +145,8 @@ fn load_bpf_program(interface_id: u32) -> Result<BpfHandles, failure::Error> {
     }
 
     Ok(BpfHandles {
+        prog_fd,
+        bpf_obj,
         xsks_map,
         qidconf_map,
     })

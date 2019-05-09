@@ -15,6 +15,7 @@ fn main() {
         .header("./src/libbpf/src/libbpf.h")
         .whitelist_function("bpf_prog_load_xattr")
         .whitelist_function("bpf_object__find_map_by_name")
+        .whitelist_function("bpf_object__unload")
         .whitelist_function("bpf_map__fd")
         .whitelist_function("bpf_set_link_xdp_fd")
         .blacklist_type(r#"u\d+"#)

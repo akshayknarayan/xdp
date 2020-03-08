@@ -68,9 +68,6 @@ impl XdpUmemUqueue {
             entries, self.cached_producer, self.cached_consumer
         );
 
-
-
-
         std::cmp::min(entries, descs_available)
     }
 
@@ -136,10 +133,11 @@ use failure::{bail, format_err};
 
 #[macro_export]
 macro_rules! xdp_mmap_regions {
-    ($fd:expr,$mmap_off_flag:expr,$off_field:ident,$numdescs:expr) => {{ try {
+    ($fd:expr,$mmap_off_flag:expr,$off_field:ident,$numdescs:expr) => {{
         use failure::format_err;
 
-        let mut optlen: libc::socklen_t = std::mem::size_of::<$crate::if_xdp::xdp_mmap_offsets>() as u32;
+        let mut optlen: libc::socklen_t =
+            std::mem::size_of::<$crate::if_xdp::xdp_mmap_offsets>() as u32;
         let mut off: $crate::if_xdp::xdp_mmap_offsets = Default::default();
         let ok = libc::getsockopt(
             $fd,
@@ -166,7 +164,7 @@ macro_rules! xdp_mmap_regions {
             Err(format_err!("Could not mmap fill ring"))?
         }
 
-        $crate::if_xdp::XdpUmemUqueue {
+        Ok($crate::if_xdp::XdpUmemUqueue {
             map,
             mask: ($numdescs - 1) as u32,
             size: $numdescs as u32,
@@ -175,10 +173,11 @@ macro_rules! xdp_mmap_regions {
             ring: map.offset(off.$off_field.desc as isize) as *mut _,
             cached_consumer: Default::default(),
             cached_producer: Default::default(),
-        }
-    }}};
+        })
+    }};
     ($fd:expr, "fill") => {{
-        let fq_r: Result<$crate::if_xdp::XdpUmemUqueue, failure::Error> = xdp_mmap_regions!($fd, XDP_UMEM_PGOFF_FILL_RING, fr, FQ_NUM_DESCS);
+        let fq_r: Result<$crate::if_xdp::XdpUmemUqueue, failure::Error> =
+            xdp_mmap_regions!($fd, XDP_UMEM_PGOFF_FILL_RING, fr, FQ_NUM_DESCS);
         fq_r.map(|mut fq| {
             fq.cached_consumer = $crate::if_xdp::NUM_DESCS as u32;
             fq
@@ -188,10 +187,20 @@ macro_rules! xdp_mmap_regions {
         xdp_mmap_regions!($fd, XDP_UMEM_PGOFF_COMPLETION_RING, cr, CQ_NUM_DESCS)
     };
     ($fd:expr, "rx") => {
-        xdp_mmap_regions!($fd, $crate::if_xdp::XDP_PGOFF_RX_RING, rx, $crate::if_xdp::NUM_DESCS)
+        xdp_mmap_regions!(
+            $fd,
+            $crate::if_xdp::XDP_PGOFF_RX_RING,
+            rx,
+            $crate::if_xdp::NUM_DESCS
+        )
     };
     ($fd:expr, "tx") => {{
-        let tx_r: Result<$crate::if_xdp::XdpUmemUqueue, failure::Error> = xdp_mmap_regions!($fd, $crate::if_xdp::XDP_PGOFF_TX_RING, tx, $crate::if_xdp::NUM_DESCS);
+        let tx_r: Result<$crate::if_xdp::XdpUmemUqueue, failure::Error> = xdp_mmap_regions!(
+            $fd,
+            $crate::if_xdp::XDP_PGOFF_TX_RING,
+            tx,
+            $crate::if_xdp::NUM_DESCS
+        );
         tx_r.map(|mut tx| {
             tx.cached_consumer = $crate::if_xdp::NUM_DESCS as u32;
             tx

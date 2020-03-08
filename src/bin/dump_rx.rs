@@ -19,12 +19,12 @@ fn main() -> Result<(), failure::Error> {
         revents: 0,
     };
 
-    let ok = unsafe { libc::poll(&mut pollfds as *mut _, 1, 10000) };
-    if ok < 0 {
-        failure::bail!("poll returned {:?}", ok);
+    loop {
+        let ok = unsafe { libc::poll(&mut pollfds as *mut _, 1, 10000) };
+        if ok < 0 {
+            failure::bail!("poll returned {:?}", ok);
+        }
+
+        xsk.read_batch(128);
     }
-
-    xsk.read_batch(128);
-
-    Ok(())
 }

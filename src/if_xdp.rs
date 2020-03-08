@@ -63,6 +63,14 @@ impl XdpUmemUqueue {
             entries = self.cached_producer - self.cached_consumer;
         }
 
+        println!(
+            "entries: {}, producer: {}, consumer: {}",
+            entries, self.cached_producer, self.cached_consumer
+        );
+
+
+
+
         std::cmp::min(entries, descs_available)
     }
 
